@@ -1,0 +1,1 @@
+project(genui.platforms.win32)
