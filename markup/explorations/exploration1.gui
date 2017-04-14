@@ -1,0 +1,66 @@
+using CommonUI;
+using Validation;
+using AppModels;
+
+
+def AppModels.LoginInfo {
+    String username;
+    Password password;
+}
+
+
+def App.LoginPage {
+    LoginInfo loginInfo;
+
+    event submit(LoginInfo) => {
+        loginValidation: Validation<LoginInfo>;
+    }
+    
+    Stack {
+        List {
+            visibility: loginValidation.hasErrors;
+        
+            Item {
+                Text {
+                    text: loginValidation.username.message;
+                    visibility: loginValidation.username.isInvalid;
+                }
+            }
+            Item {
+                Text {
+                    text: loginValidation.password.message;
+                    visibility: loginValidation.password.isInvalid;
+                }
+            }
+        }
+    
+        Table {
+            Row {
+                Column {
+                    Text { "Username" }
+                }
+                Column {
+                    TextBox {
+                        text: loginInfo.username;
+                        validation: loginValidation;
+                    }
+                }
+            }
+            Row {
+                Column {
+                    Text { "Password" }
+                }
+                Column {
+                    PasswordTextBox {
+                        text: loginInfo.password;
+                        validation: loginValidation;
+                    }
+                }
+            }
+        }
+        
+        Button {
+            click: submit(loginInfo);
+        }
+    }
+}
