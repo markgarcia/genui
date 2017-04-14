@@ -1,3 +1,6 @@
+#ifndef GENUI_MARKUP_OBJECT_MODEL_HPP
+#define GENUI_MARKUP_OBJECT_MODEL_HPP
+
 #pragma once
 
 #include <vector>
@@ -85,3 +88,6 @@ private:
 
 
 }
+
+
+#endif
