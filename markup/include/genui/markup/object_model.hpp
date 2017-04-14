@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <gsl/gsl>
+
 #include <vector>
 #include <string>
 #include <string_view>
@@ -28,7 +30,7 @@ public:
 
     template<>
     bool is_of_type<object>() const noexcept {
-        return std::get_if<object&>(&m_value) != nullptr;
+        return std::get_if<gsl::not_null<object*>>(&m_value) != nullptr;
     }
 
     template<typename T>
@@ -37,15 +39,15 @@ public:
     }
 
     template<>
-    const object& value() const {
-        return std::get<object&>(m_value);
+    const object& value<object>() const {
+        return *std::get<gsl::not_null<object*>>(m_value);
     }
 
 private:
     std::string m_name;
 
     std::variant<
-        object&,
+        gsl::not_null<object*>,
         long long,
         std::string
     > m_value;
