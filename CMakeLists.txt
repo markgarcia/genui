@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 project(genui)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 set_property(DIRECTORY PROPERTY CXX_STANDARD 17)
 set_property(DIRECTORY PROPERTY CXX_STANDARD_REQUIRED ON)
 
