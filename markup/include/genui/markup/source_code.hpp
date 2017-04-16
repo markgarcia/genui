@@ -12,13 +12,17 @@ namespace genui::markup {
 
 class source_code {
 public:
-    source_code(std::string code);
-    source_code(std::string_view code);
+    source_code(std::string&& code)
+        : m_buffer(std::move(code)) {}
+    source_code(std::string_view code)
+        : m_buffer(code) {}
+    source_code(const char* code)
+        : m_buffer(code) {}
 
-    const std::string_view buffer() const { return std::string_view(m_code); }
+    const std::string_view buffer() const { return std::string_view(m_buffer); }
 
 private:
-    std::string m_code;
+    std::string m_buffer;
 };
 
 

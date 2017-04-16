@@ -4,7 +4,6 @@
 #pragma once
 
 #include <variant>
-#include <optional>
 #include <string_view>
 #include <string>
 #include <cstdint>
@@ -15,9 +14,10 @@ namespace genui::markup {
 
 
 enum class token_type {
+    empty_token,
+
     whitespace,
     invalid,
-    eof,
 
     colon,
     left_brace,
@@ -33,12 +33,14 @@ enum class token_type {
 };
 
 
-class token {
-protected:
-    constexpr token(token_type type, std::string_view source) noexcept
+class token_base {
+public:
+    constexpr token_base() noexcept
+        : m_type(token_type::empty_token) {}
+
+    constexpr token_base(token_type type, std::string_view source) noexcept
         : m_type(type), m_source(source) {}
 
-public:
     constexpr token_type type() const noexcept {
         return m_type;
     }
@@ -53,53 +55,48 @@ private:
 };
 
 
-class whitespace_token : public token {
+class whitespace_token : public token_base {
 public:
     constexpr whitespace_token(std::string_view whitespace) noexcept
-        : token(token_type::whitespace, whitespace) {}
-    
-    constexpr std::string_view whitespace() const noexcept { return source(); };
+        : token_base(token_type::whitespace, whitespace) {}
 };
 
 
-class invalid_token : public token {
+class invalid_token : public token_base {
 public:
-    constexpr invalid_token(std::string_view invalid_string) noexcept
-        : token(token_type::invalid, invalid_string) {}
-
-    constexpr std::string_view invalid_string() const noexcept { return source(); }
+    constexpr invalid_token(std::string_view source) noexcept
+        : token_base(token_type::invalid, source) {}
 };
 
 
-class eof_token : public token {
+class identifier_token : public token_base {
 public:
-    constexpr eof_token(std::string_view eof) noexcept
-        : token(token_type::eof, eof) {}
+    constexpr identifier_token(std::string_view identifier, std::string_view canonical_identifier) noexcept
+        : token_base(token_type::identifier, identifier), m_canonical_identifier(canonical_identifier) {}
+
+    constexpr std::string_view canonical_identifier() const noexcept { return m_canonical_identifier; }
+
+private:
+    const std::string_view m_canonical_identifier;
 };
 
 
-class identifier_token : public token {
+class string_literal_token : public token_base {
 public:
-    constexpr identifier_token(std::string_view identifier) noexcept
-        : token(token_type::identifier, identifier) {}
+    constexpr string_literal_token(std::string_view source, std::string_view value) noexcept
+        : token_base(token_type::string_literal, source), m_value(value) {}
 
-    constexpr std::string_view identifier() const noexcept { return source(); }
+    constexpr std::string_view value() const noexcept { return m_value; }
+
+private:
+    const std::string_view m_value;
 };
 
 
-class string_literal_token : public token {
+class integer_constant_token : public token_base {
 public:
-    constexpr string_literal_token(std::string_view string) noexcept
-        : token(token_type::string_literal, string) {}
-
-    constexpr std::string_view value() const noexcept { return source(); }
-};
-
-
-class integer_constant_token : public token {
-public:
-    constexpr integer_constant_token(std::uint64_t value, std::string_view source) noexcept
-        : token(token_type::integer_constant, source), m_value(value) {}
+    constexpr integer_constant_token(std::string_view source, std::uint64_t value) noexcept
+        : token_base(token_type::integer_constant, source), m_value(value) {}
 
     constexpr std::uint64_t value() const noexcept { return m_value; }
 
@@ -108,15 +105,16 @@ private:
 };
 
 
-class colon_token : public token {
+class colon_token : public token_base {
+public:
     constexpr colon_token(std::string_view colon) noexcept
-        : token(token_type::colon, colon) {}
+        : token_base(token_type::colon, colon) {}
 };
 
 
-class brace_token : public token {
+class brace_token : public token_base {
 public:
-    using token::token;
+    using token_base::token_base;
 };
 
 
@@ -134,9 +132,9 @@ public:
 };
 
 
-class keyword_token : public token {
+class keyword_token : public token_base {
 public:
-    using token::token;
+    using token_base::token_base;
 };
 
 
@@ -165,6 +163,32 @@ public:
     constexpr keyword_using_token(std::string_view using_keyword) noexcept
         : keyword_token_base(token_type::keyword_using, using_keyword) {}
 };
+
+
+template<template<typename...> typename T>
+using apply_token_type_list_for = T<
+    token_base,
+    whitespace_token,
+    invalid_token,
+    colon_token,
+    left_brace_token,
+    right_brace_token,
+    identifier_token,
+    string_literal_token,
+    integer_constant_token,
+    keyword_def_token,
+    keyword_using_token
+>;
+
+
+using token_variant = apply_token_type_list_for<std::variant>;
+
+
+inline const token_base& get_token_base(const token_variant& token) {
+    return std::visit([](const auto& token) -> const token_base& {
+        return static_cast<const token_base&>(token);
+    }, token);
+}
 
 
 }

@@ -18,5 +18,4 @@ source_group(src FILES ${SRC_LIST})
 add_library(genui.markup STATIC ${SRC_LIST} ${HEADERS_LIST})
 target_include_directories(genui.markup PUBLIC include)
 
-include_directories(include)
 add_subdirectory(tests)

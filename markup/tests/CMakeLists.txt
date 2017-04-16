@@ -1,1 +1,2 @@
 add_subdirectory(compilation_test)
+add_subdirectory(lexer_test)
