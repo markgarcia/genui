@@ -74,6 +74,7 @@ TEST_CASE("Lexer produces proper token types.", "[lexer]") {
 
             REQUIRE(tokens.size() == 1);
             REQUIRE(std::get_if<keyword_def_token>(&tokens[0]) != nullptr);
+            REQUIRE(std::get_if<keyword_def_token>(&tokens[0])->canonical_keyword() == "def");
         }
 
         SECTION("using") {
@@ -82,6 +83,7 @@ TEST_CASE("Lexer produces proper token types.", "[lexer]") {
 
             REQUIRE(tokens.size() == 1);
             REQUIRE(std::get_if<keyword_using_token>(&tokens[0]) != nullptr);
+            REQUIRE(std::get_if<keyword_using_token>(&tokens[0])->canonical_keyword() == "using");
         }
     }
 }

@@ -107,8 +107,8 @@ private:
 
 class colon_token : public token_base {
 public:
-    constexpr colon_token(std::string_view colon) noexcept
-        : token_base(token_type::colon, colon) {}
+    constexpr colon_token(std::string_view source) noexcept
+        : token_base(token_type::colon, source) {}
 };
 
 
@@ -120,15 +120,15 @@ public:
 
 class left_brace_token : public brace_token {
 public:
-    constexpr left_brace_token(std::string_view left_brace) noexcept
-        : brace_token(token_type::left_brace, left_brace) {}
+    constexpr left_brace_token(std::string_view source) noexcept
+        : brace_token(token_type::left_brace, source) {}
 };
 
 
 class right_brace_token : public brace_token {
 public:
-    constexpr right_brace_token(std::string_view right_brace) noexcept
-        : brace_token(token_type::right_brace, right_brace) {}
+    constexpr right_brace_token(std::string_view source) noexcept
+        : brace_token(token_type::right_brace, source) {}
 };
 
 
@@ -143,25 +143,25 @@ class keyword_token_base : public keyword_token {
 public:
     using keyword_token::keyword_token;
 
-    constexpr std::string_view canonical_keyword() const { return derived_t::canonical_keyword; }
+    constexpr std::string_view canonical_keyword() const { return derived_t::canonical_keyword_str; }
 };
 
 
 class keyword_def_token : public keyword_token_base<keyword_def_token> {
 public:
-    static constexpr const char* canonical_keyword = "def";
+    static constexpr const char* canonical_keyword_str = "def";
     
-    constexpr keyword_def_token(std::string_view def_keyword) noexcept
-        : keyword_token_base(token_type::keyword_def, def_keyword) {}
+    constexpr keyword_def_token(std::string_view source) noexcept
+        : keyword_token_base(token_type::keyword_def, source) {}
 };
 
 
 class keyword_using_token : public keyword_token_base<keyword_using_token> {
 public:
-    static constexpr const char* canonical_keyword = "using";
+    static constexpr const char* canonical_keyword_str = "using";
 
-    constexpr keyword_using_token(std::string_view using_keyword) noexcept
-        : keyword_token_base(token_type::keyword_using, using_keyword) {}
+    constexpr keyword_using_token(std::string_view source) noexcept
+        : keyword_token_base(token_type::keyword_using, source) {}
 };
 
 
