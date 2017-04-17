@@ -33,6 +33,10 @@ private:
     bool lex_keywords(std::string_view& source, token_variant& token);
     bool lex_identifier(std::string_view& source, token_variant& token);
 
+    const char* get_end_data(const std::string_view& str) {
+        return str.data() + str.size();
+    }
+
     template<typename func_predicate_type>
     std::enable_if_t<
         std::is_function_v<func_predicate_type>,
@@ -41,7 +45,7 @@ private:
     eat(std::string_view& source, func_predicate_type&& func_predicate) {
         const char* begin = source.data();
         const char* current_ptr = source.data();
-        while(current_ptr != source.data() + source.size()
+        while(current_ptr != get_end_data(source)
               && std::forward<func_predicate_type>(func_predicate)(*current_ptr)) {
             ++current_ptr;
         }
@@ -54,7 +58,7 @@ private:
     std::string_view eat(std::string_view& source, bool (lexer::*func)(char)) {
         const char* begin = source.data();
         const char* current_ptr = source.data();
-        while(current_ptr != source.data() + source.size()
+        while(current_ptr != get_end_data(source)
               && (this->*func)(*current_ptr)) {
             ++current_ptr;
         }

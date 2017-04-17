@@ -42,35 +42,45 @@ bool lexer::lex(token_variant& token) {
     }
 
     if(lex_whitespace(source, token)) {
+        assert(get_end_data(get_token_base(token).source()) == source.data());
         m_next_token_ptr = source.data();
         return true;
     }
     else if(source.front() == ':') {
         token.emplace<colon_token>(eat(source, 1));
+
+        assert(get_end_data(get_token_base(token).source()) == source.data());
         m_next_token_ptr = source.data();
         return true;
     }
     else if(source.front() == '{') {
         token.emplace<left_brace_token>(eat(source, 1));
+
+        assert(get_end_data(get_token_base(token).source()) == source.data());
         m_next_token_ptr = source.data();
         return true;
     }
     else if(source.front() == '}') {
         token.emplace<right_brace_token>(eat(source, 1));
+
+        assert(get_end_data(get_token_base(token).source()) == source.data());
         m_next_token_ptr = source.data();
         return true;
     }
     else if(lex_keywords(source, token)) {
+        assert(get_end_data(get_token_base(token).source()) == source.data());
         m_next_token_ptr = source.data();
         return true;
     }
     else if(lex_identifier(source, token)) {
+        assert(get_end_data(get_token_base(token).source()) == source.data());
         m_next_token_ptr = source.data();
         return true;
     }
     else {
-        token.emplace<invalid_token>(std::string_view { source.data(), 1 });
-        source.remove_prefix(1);
+        token.emplace<invalid_token>(eat(source, 1));
+
+        assert(get_end_data(get_token_base(token).source()) == source.data());
         m_next_token_ptr = source.data();
         return true;
     }
