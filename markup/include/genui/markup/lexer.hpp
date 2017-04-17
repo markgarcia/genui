@@ -28,34 +28,47 @@ private:
     const char* m_end_ptr = nullptr;
 
     bool is_whitespace(char c);
-    bool lex_whitespace(const char*& current_ptr, token_variant& token);
-    bool try_eat_keyword(const char*& current_ptr, std::string_view keyword, std::string_view& source);
-    bool lex_keywords(const char*& current_ptr, token_variant& token);
-    bool lex_identifier(const char*& current_ptr, token_variant& token);
+    bool lex_whitespace(std::string_view& source, token_variant& token);
+    bool try_eat_keyword(std::string_view& source, std::string_view keyword, std::string_view& keyword_source);
+    bool lex_keywords(std::string_view& source, token_variant& token);
+    bool lex_identifier(std::string_view& source, token_variant& token);
 
     template<typename func_predicate_type>
     std::enable_if_t<
         std::is_function_v<func_predicate_type>,
         std::string_view
     >
-    eat(const char*& current_ptr, func_predicate_type&& func_predicate) {
-        const char* begin = current_ptr;
-        while(std::forward<func_predicate_type>(func_predicate)(*current_ptr)) ++current_ptr;
+    eat(std::string_view& source, func_predicate_type&& func_predicate) {
+        const char* begin = source.data();
+        const char* current_ptr = source.data();
+        while(current_ptr != source.data() + source.size()
+              && std::forward<func_predicate_type>(func_predicate)(*current_ptr)) {
+            ++current_ptr;
+        }
 
-        return std::string_view { begin, static_cast<std::size_t>(current_ptr - begin) };
+        auto size = static_cast<std::size_t>(current_ptr - begin);
+        source.remove_prefix(size)
+        return std::string_view { begin, size };
     }
 
-    std::string_view eat(const char*& current_ptr, bool (lexer::*func)(char)) {
-        const char* begin = current_ptr;
-        while((this->*func)(*current_ptr)) ++current_ptr;
+    std::string_view eat(std::string_view& source, bool (lexer::*func)(char)) {
+        const char* begin = source.data();
+        const char* current_ptr = source.data();
+        while(current_ptr != source.data() + source.size()
+              && (this->*func)(*current_ptr)) {
+            ++current_ptr;
+        }
 
-        return std::string_view { begin, static_cast<std::size_t>(current_ptr - begin) };
+        auto size = static_cast<std::size_t>(current_ptr - begin);
+        source.remove_prefix(size);
+        return std::string_view { begin, size };
     }
 
-    std::string_view eat(const char*& current_ptr, std::size_t size) {
-        const char* begin = current_ptr;
-        current_ptr += size;
+    std::string_view eat(std::string_view& source, std::size_t size) {
+        if(size > source.size()) size = source.size();
 
+        const char* begin = source.data();
+        source.remove_prefix(static_cast<std::size_t>(size));
         return std::string_view { begin, size };
     }
 };

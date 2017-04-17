@@ -36,38 +36,42 @@ lexer& lexer::operator=(lexer&& rhs) noexcept {
 bool lexer::lex(token_variant& token) {
     assert(m_next_token_ptr <= m_end_ptr);
 
-    if(m_next_token_ptr == m_end_ptr) {
+    std::string_view source(m_next_token_ptr, static_cast<std::size_t>(m_end_ptr - m_next_token_ptr));
+    if(source.empty()) {
         return false; 
     }
 
-    const char* current_ptr = m_next_token_ptr;
-
-    if(lex_whitespace(current_ptr, token)) {
+    if(lex_whitespace(source, token)) {
+        m_next_token_ptr = source.data();
         return true;
     }
-    else if(*current_ptr == ':') {
-        token.emplace<colon_token>(eat(current_ptr, 1));
-        m_next_token_ptr = current_ptr;
+    else if(source.front() == ':') {
+        token.emplace<colon_token>(eat(source, 1));
+        m_next_token_ptr = source.data();
         return true;
     }
-    else if(*current_ptr == '{') {
-        token.emplace<left_brace_token>(eat(current_ptr, 1));
-        m_next_token_ptr = current_ptr;
+    else if(source.front() == '{') {
+        token.emplace<left_brace_token>(eat(source, 1));
+        m_next_token_ptr = source.data();
         return true;
     }
-    else if(*current_ptr == '}') {
-        token.emplace<right_brace_token>(eat(current_ptr, 1));
-        m_next_token_ptr = current_ptr;
+    else if(source.front() == '}') {
+        token.emplace<right_brace_token>(eat(source, 1));
+        m_next_token_ptr = source.data();
         return true;
     }
-    else if(lex_keywords(current_ptr, token)) {
-        m_next_token_ptr = current_ptr;
+    else if(lex_keywords(source, token)) {
+        m_next_token_ptr = source.data();
+        return true;
+    }
+    else if(lex_identifier(source, token)) {
+        m_next_token_ptr = source.data();
         return true;
     }
     else {
-        token.emplace<invalid_token>(std::string_view { current_ptr, 1 });
-        ++current_ptr;
-        m_next_token_ptr = current_ptr;
+        token.emplace<invalid_token>(std::string_view { source.data(), 1 });
+        source.remove_prefix(1);
+        m_next_token_ptr = source.data();
         return true;
     }
 }
@@ -78,41 +82,39 @@ bool lexer::is_whitespace(char c) {
 }
 
 
-bool lexer::lex_whitespace(const char*& current_ptr, token_variant& token) {    
-    if(!is_whitespace(*current_ptr)) return false;
+bool lexer::lex_whitespace(std::string_view& source, token_variant& token) {
+    if(!is_whitespace(source.front())) return false;
 
-    token.emplace<whitespace_token>(eat(current_ptr, &lexer::is_whitespace));
-    m_next_token_ptr = current_ptr;
-
-    return true;
-}
-
-
-bool lexer::try_eat_keyword(const char*& current_ptr, std::string_view keyword, std::string_view& source) {
-    if(static_cast<std::size_t>(m_end_ptr - current_ptr) < keyword.size()) {
-        return false;
-    }
-
-    std::string_view test_source { current_ptr, keyword.size() };
-    if(test_source != keyword) {
-        return false;
-    }
-
-    source = test_source;
-    current_ptr += keyword.size();
+    token.emplace<whitespace_token>(eat(source, &lexer::is_whitespace));
 
     return true;
 }
 
 
-bool lexer::lex_keywords(const char*& current_ptr, token_variant& token) {
+bool lexer::try_eat_keyword(std::string_view& source, std::string_view keyword, std::string_view& keyword_source) {
+    if(source.size() < keyword.size()) {
+        return false;
+    }
+
+    if(source.substr(0, keyword.size()) != keyword) {
+        return false;
+    }
+
+    keyword_source = source.substr(0, keyword.size());
+    source.remove_prefix(keyword.size());
+
+    return true;
+}
+
+
+bool lexer::lex_keywords(std::string_view& source, token_variant& token) {
     std::string_view keyword_source;
     
-    if(try_eat_keyword(current_ptr, "def", keyword_source)) {
+    if(try_eat_keyword(source, "def", keyword_source)) {
         token.emplace<keyword_def_token>(keyword_source);
         return true;
     }
-    else if(try_eat_keyword(current_ptr, "using", keyword_source)) {
+    else if(try_eat_keyword(source, "using", keyword_source)) {
         token.emplace<keyword_using_token>(keyword_source);
         return true;
     }
@@ -121,7 +123,7 @@ bool lexer::lex_keywords(const char*& current_ptr, token_variant& token) {
 }
 
 
-bool lexer::lex_identifier(const char*& current_ptr, token_variant& token) {
+bool lexer::lex_identifier(std::string_view& source, token_variant& token) {
     return false;
 }
 
