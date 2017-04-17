@@ -185,8 +185,8 @@ using token_variant = apply_token_type_list_for<std::variant>;
 
 
 inline const token_base& get_token_base(const token_variant& token) {
-    return std::visit([](const auto& token) -> const token_base& {
-        return static_cast<const token_base&>(token);
+    return std::visit([](const token_base& token) -> const token_base& {
+        return token;
     }, token);
 }
 
